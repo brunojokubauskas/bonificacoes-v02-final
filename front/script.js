@@ -1,8 +1,8 @@
 const url = "http://localhost:3000";
-const novo = document.querySelector("#novo");
-const corpo = document.querySelector("#corpo");
+const novoForm = document.querySelector("#novo");
+const tabela = document.querySelector("#tabela");
 const total = document.querySelector("#total");
-var dados = [];
+let dados = [];
 
 // Função para carregar os dados da API e preencher a tabela
 function carregar() {
@@ -17,125 +17,161 @@ function carregar() {
 
 // Função para preencher a tabela com os dados obtidos da API
 function preencherTabela() {
+    tabela.innerHTML = `
+        <tr>
+            <th>Nome</th>
+            <th>Data de Admissão</th>
+            <th>Salário</th>
+            <th>Desempenho</th>
+            <th>Bônus</th>
+            <th>Ações</th>
+        </tr>
+    `;
     let totalDinheiro = 0;
     dados.forEach((e) => {
-        let linha = document.createElement("tr");
-        linha.setAttribute('id', 'linha' + e.matricula);
-        let td = [];
-        for (let i = 0; i < 9; i++) {
-            td.push(document.createElement("td"));
-            // Adicionar o atributo data-label para responsividade CSS
-            if (i < 7) td[i].setAttribute("data-label", Object.keys(e)[i].charAt(0).toUpperCase() + Object.keys(e)[i].substr(1) + ":");
-            else if (i == 7) td[i].setAttribute("data-label", "Alterar:");
-            else td[i].setAttribute("data-label", "Excluir:");
-        }
-        td[0].innerHTML = e.matricula;
-        td[1].innerHTML = e.nome;
-        td[1].setAttribute("contenteditable", "true");
-        td[2].innerHTML = `<input type="date" value="${e.admissao.split("T")[0]}">`;
-        td[3].innerHTML = e.salario;
-        td[3].setAttribute("contenteditable", "true");
-        td[4].innerHTML = `<input type="date" value="${e.pagamento.split("T")[0]}">`;
-        td[5].innerHTML = e.desempenho;
-        td[5].setAttribute("contenteditable", "true");
-        td[6].innerHTML = e.bonificacao.toFixed(2);
-        let btUpdate = document.createElement('button');
+        const linha = document.createElement("tr");
+        const tdNome = document.createElement("td");
+        const tdAdmissao = document.createElement("td");
+        const tdSalario = document.createElement("td");
+        const tdDesempenho = document.createElement("td");
+        const tdBonificacao = document.createElement("td");
+        const tdAcoes = document.createElement("td");
+        const btUpdate = document.createElement('button');
+        const btDel = document.createElement('button');
+
+        tdNome.innerHTML = e.nome;
+        tdAdmissao.innerHTML = e.admissao.split("T")[0];
+        tdSalario.innerHTML = e.salario;
+        tdDesempenho.innerHTML = e.desempenho;
+        tdBonificacao.innerHTML = e.bonificacao.toFixed(2);
+
         btUpdate.innerHTML = '*';
-        btUpdate.setAttribute('onclick', `alterar(${e.matricula})`);
-        td[7].appendChild(btUpdate);
-        let btDel = document.createElement('button');
+        btUpdate.addEventListener('click', () => alterar(e.matricula));
+
         btDel.innerHTML = '-';
-        btDel.setAttribute('onclick', `excluir(${e.matricula})`);
-        td[8].appendChild(btDel);
-        for (let i = 0; i < 9; i++)
-            linha.appendChild(td[i]);
-        corpo.appendChild(linha);
+        btDel.addEventListener('click', () => excluir(e.matricula));
+
+        tdAcoes.appendChild(btUpdate);
+        tdAcoes.appendChild(btDel);
+
+        linha.appendChild(tdNome);
+        linha.appendChild(tdAdmissao);
+        linha.appendChild(tdSalario);
+        linha.appendChild(tdDesempenho);
+        linha.appendChild(tdBonificacao);
+        linha.appendChild(tdAcoes);
+
+        tabela.appendChild(linha);
+
         totalDinheiro += e.bonificacao;
     });
-    total.innerHTML += ' ' + dados.length + ' Montante R$ ' + totalDinheiro.toFixed(2);
+
+    total.innerHTML = `Total: ${dados.length} funcionários | Montante: R$ ${totalDinheiro.toFixed(2)}`;
 }
 
-// Evento de envio do formulário para criar um novo pagamento
-novo.addEventListener('submit', e => {
+// Evento de envio do formulário para criar um novo funcionário
+novoForm.addEventListener('submit', e => {
     e.preventDefault();
-    const body = {
-        "nome": novo.nome.value,
-        "admissao": novo.admissao.value,
-        "salario": novo.salario.value,
-        "desempenho": novo.desempenho.value,
+    const nome = novoForm.nome.value;
+    const admissao = novoForm.admissao.value;
+    const salario = parseFloat(novoForm.salario.value);
+    const desempenho = parseFloat(novoForm.desempenho.value);
+
+    if (isNaN(salario) || isNaN(desempenho)) {
+        alert("Salário e desempenho devem ser valores numéricos.");
+        return;
+    }
+
+    const novoFuncionario = {
+        nome: nome,
+        admissao: admissao,
+        salario: salario,
+        desempenho: desempenho
     };
 
     const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoFuncionario)
     };
 
-    options.body = JSON.stringify(body);
-
     fetch(url + '/criar', options)
-        .then(resp => resp.status)
         .then(resp => {
-            if (resp == 201) window.location.reload();
-            else alert('Erro ao enviar dados');
-        });
+            if (resp.status === 201) {
+                return resp.json();
+            } else {
+                throw new Error('Erro ao enviar dados');
+            }
+        })
+        .then(resp => {
+            dados.push(resp);
+            preencherTabela();
+            novoForm.reset();
+        })
+        .catch(err => alert(err));
 });
 
-// Função para excluir um pagamento
+// Função para excluir um funcionário
 function excluir(matricula) {
     fetch(url + '/excluir/' + matricula, { method: 'DELETE' })
-        .then(resp => resp.status)
         .then(resp => {
-            if (resp == 204)
-                window.location.reload();
-            else
-                alert('Pagamento não encontrado');
-        });
-}
-
-// Função para alterar um pagamento
-function alterar(matricula) {
-    let linha = document.querySelector(`#linha${matricula}`);
-    if (!isNaN(linha.childNodes[3].innerHTML) && !isNaN(linha.childNodes[5].innerHTML)) {
-        const body = {
-            "matricula": matricula,
-            "nome": linha.childNodes[1].innerHTML,
-            "admissao": linha.childNodes[2].childNodes[0].value,
-            "salario": Number(linha.childNodes[3].innerHTML),
-            "pagamento": linha.childNodes[4].childNodes[0].value,
-            "desempenho": Number(linha.childNodes[5].innerHTML),
-        };
-        const options = {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-        };
-
-        options.body = JSON.stringify(body);
-
-        fetch(url + '/alterar', options)
-            .then(resp => resp.status)
-            .then(resp => {
-                if (resp == 202) window.location.reload();
-                else alert('Erro ao alterar dados');
-            });
-    } else {
-        alert("Salário e desempenho devem ser dados numéricos");
-    }
-}
-
-// Função para filtrar os pagamentos na tabela
-function filtro() {
-    const texto = document.querySelector("#filtro");
-    let filtro = texto.value.toUpperCase();
-    var linhas = corpo.getElementsByTagName("tr");
-    for (let i = 0; i < linhas.length; i++) {
-        var nome = linhas[i].getElementsByTagName("td")[1];
-        if (nome) {
-            let compara = nome.textContent || nome.innerText;
-            if (compara.toUpperCase().indexOf(filtro) > -1) {
-                linhas[i].style.display = "";
+            if (resp.status === 204) {
+                return resp.json();
             } else {
-                linhas[i].style.display = "none";
+                throw new Error('Funcionário não encontrado');
             }
-        }
-    }
+        })
+        .then(resp => {
+            dados = dados.filter(e => e.matricula !== matricula);
+            preencherTabela();
+        })
+        .catch(err => alert(err));
 }
+
+// Função para alterar os dados de um funcionário
+function alterar(matricula) {
+    const linha = tabela.querySelector(`#linha${matricula}`);
+    const nome = linha.querySelector(".nome").innerText;
+    const admissao = linha.querySelector(".admissao").innerText;
+    const salario = parseFloat(linha.querySelector(".salario").innerText);
+    const desempenho = parseFloat(linha.querySelector(".desempenho").innerText);
+
+    if (isNaN(salario) || isNaN(desempenho)) {
+        alert("Salário e desempenho devem ser valores numéricos.");
+        return;
+    }
+
+    const funcionarioAtualizado = {
+        matricula: matricula,
+        nome: nome,
+        admissao: admissao,
+        salario: salario,
+        desempenho: desempenho
+    };
+
+    const options = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(funcionarioAtualizado)
+    };
+
+    fetch(url + '/alterar', options)
+        .then(resp => {
+            if (resp.status === 202) {
+                return resp.json();
+            } else {
+                throw new Error('Erro ao alterar dados');
+            }
+        })
+        .then(resp => {
+            const index = dados.findIndex(e => e.matricula === matricula);
+            if (index !== -1) {
+                dados[index] = resp;
+                preencherTabela();
+            }
+        })
+        .catch(err => alert(err));
+}
+
+// Chamar a função para carregar os dados ao carregar a página
+carregar();
