@@ -1,6 +1,11 @@
 # Projeto de Gerenciamento de Bonificações de Funcionários
 
-Este é um projeto de exemplo que demonstra um sistema simples de gerenciamento de bonificações de funcionários. O projeto é baseado em uma aplicação web desenvolvida com Node.js, utilizando o framework Express para criação de rotas e a linguagem HTML para a apresentação dos dados.
+Este é um projeto de exemplo que demonstra um sistema simples de gerenciamento de bonificações de funcionários. O projeto é baseado em uma aplicação web desenvolvida com Node.js, utilizando o framework Express para criação de rotas e a linguagem HTML para a apresentação dos dados. 
+![Screenshot](scree![tela-1](https://github.com/brunojokubauskas/bonificacoes-v02-final/assets/87511763/f03943b9-e642-47ca-b6a3-27f7fb99f609)
+nshot.png) 
+
+![Screenshot](scre![modal](https://github.com/brunojokubauskas/bonificacoes-v02-final/assets/87511763/7b744c45-80ff-4de6-a44e-f9ad1466bd35)
+enshot.png)
 
 ## Funcionalidades
 
