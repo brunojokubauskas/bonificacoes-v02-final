@@ -14,6 +14,9 @@ Este é um projeto de exemplo que demonstra um sistema simples de gerenciamento 
 
 - Node.js (instalado globalmente)
 - NPM (Node Package Manager)
+- MySQL 
+- BootStrap 
+- Express 
 
 ## Instruções de Uso
 
