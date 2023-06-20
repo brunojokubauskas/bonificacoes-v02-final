@@ -23,7 +23,10 @@ VALUES
   ('Silvia Silva', '2019-05-20', 3200.00, CURDATE(), 10),
   ('Solange Oliveira', '2020-12-11', 5500.00, CURDATE(), 8.5),
   ('Fabiana Silva', '2020-01-02', 1000.00, CURDATE(), 10),
-  ('Mariana Pontes', '2021-12-13', 2350.00, CURDATE(), 6);
+  ('Mariana Pontes', '2021-12-13', 2350.00, CURDATE(), 6),
+  ('Bruno Jokubauskas', '2023-06-20', 3000.00, CURDATE(), 10),
+  ('Marcelo', '2023-06-20', 5000.00, CURDATE(), 5),
+  ('Lucas', '2023-06-20', 1500.00, CURDATE(), 7);
 
 -- DQL Seleção de todos os registros da tabela funcionarios
 SELECT * FROM funcionarios;
